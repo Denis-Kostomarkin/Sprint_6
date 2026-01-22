@@ -1,9 +1,9 @@
-from selenium.webdriver import Keys
 from selenium.webdriver.common.by import By
+from selenium.webdriver import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 import allure
-import time 
+import time
 
 
 class OrderPage:
@@ -24,9 +24,9 @@ class OrderPage:
     RENTAL_1_DAY = (By.XPATH, "//div[text()='сутки']")
     BLACK_CHECKBOX = (By.ID, "black")
     GREY_CHECKBOX = (By.ID, "grey")
-    ORDER_BUTTON = (By.XPATH, "//button[text()='Заказать']")
+    ORDER_BUTTON = (By.XPATH, "//button[@class='Button_Button__ra12g Button_Middle__1CSJM' and text()='Заказать']")
     
-    CONFIRM_BUTTON = (By.XPATH, "//button[@class='Button_Button__ra12g Button_Middle__1CSJM' and text()='Заказать']")
+    CONFIRM_BUTTON = (By.XPATH, "//button[text()='Да']")
     SUCCESS_MODAL = (By.XPATH, "//div[contains(@class, 'Order_ModalHeader')]")
     
     @allure.step("Заполнить информацию о заказчике")

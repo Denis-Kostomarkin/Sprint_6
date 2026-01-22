@@ -1,5 +1,7 @@
 import pytest
 import allure
+from pages.main_page import MainPage
+from pages.order_page import OrderPage
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
@@ -8,60 +10,107 @@ from selenium.webdriver.support import expected_conditions as EC
 @allure.feature("Заказ самоката")
 class TestOrderFlow:
     
+    # Тестовые данные
     TEST_DATA = [
         {
-            "button": "top",
+            "order_button": "top",
             "name": "Иван",
             "last_name": "Иванов",
             "address": "ул. Ленина, д. 10",
             "phone": "+79991234567",
             "date": "15.12.2024",
-            "color": "black"
+            "color": "black",
+            "comment": "Позвонить за час до доставки"
         },
         {
-            "button": "bottom",
+            "order_button": "bottom",
             "name": "Мария",
             "last_name": "Петрова",
             "address": "пр. Мира, д. 25",
             "phone": "+79997654321",
             "date": "20.12.2024",
-            "color": "grey"
+            "color": "grey",
+            "comment": ""
         }
     ]
     
-    @allure.title("Заказ самоката")
-    @pytest.mark.parametrize("data", TEST_DATA)
-    def test_successful_order(self, main_page, data):
-        if data["button"] == "top":
-            order_page = main_page.click_order_button_top()
+    @allure.title("Заказ самоката через {order_button} кнопку")
+    @allure.severity(allure.severity_level.CRITICAL)
+    @pytest.mark.parametrize("test_data", TEST_DATA, ids=["top_button", "bottom_button"])
+    def test_successful_order(self, driver, test_data):
+        # Открываем главную страницу
+        main_page = MainPage(driver)
+        main_page.open_main_page()
+        main_page.accept_cookies()
+        
+        # Нажимаем кнопку заказа
+        if test_data["order_button"] == "top":
+            main_page.click_top_order_button()
         else:
-            order_page = main_page.click_order_button_bottom()
+            main_page.click_bottom_order_button()
         
+        # Переходим на OrderPage
+        order_page = OrderPage(driver)
+        
+        # Заполняем информацию о заказчике (метод УЖЕ нажимает "Далее" внутри себя)
         order_page.fill_customer_info(
-            data["name"], data["last_name"], data["address"], data["phone"]
+            name=test_data["name"],
+            last_name=test_data["last_name"],
+            address=test_data["address"],
+            phone=test_data["phone"]
         )
-        order_page.fill_rental_info(data["date"], data["color"])
+        # НЕ вызываем click_next_button() - он уже в fill_customer_info
         
-        assert order_page.place_order()
+        # Заполняем информацию об аренде
+        order_page.fill_rental_info(
+            date=test_data["date"],
+            color=test_data["color"]
+        )
+        
+        # Оформляем заказ (метод place_order делает всё: клик на кнопку и подтверждение)
+        result = order_page.place_order()
+        
+        # Проверяем успешность
+        assert result, "Заказ не был успешно оформлен"
     
-    @allure.title("Переход по логотипу Самоката")
-    def test_scooter_logo_redirect(self, main_page):
+    @allure.title("Переход на главную через логотип Самоката")
+    @allure.severity(allure.severity_level.NORMAL)
+    def test_scooter_logo_redirect(self, driver):
+        main_page = MainPage(driver)
+        main_page.open_main_page()
+        main_page.accept_cookies()
+        
         main_page.click_scooter_logo()
-        assert "qa-scooter" in main_page.get_current_url()
+        
+        current_url = main_page.get_current_url()
+        assert "qa-scooter" in current_url
     
-    @allure.title("Переход по логотипу Яндекса")
-    def test_yandex_logo_redirect(self, main_page):
-        main_window = main_page.driver.current_window_handle
+    @allure.title("Переход на Дзен через логотип Яндекса")
+    @allure.severity(allure.severity_level.NORMAL)
+    def test_yandex_logo_redirect(self, driver):
+        main_page = MainPage(driver)
+        main_page.open_main_page()
+        main_page.accept_cookies()
+        
+        # Сохраняем текущее окно
+        main_window = driver.current_window_handle
+        
+        # Кликаем на логотип Яндекса
         main_page.click_yandex_logo()
         
-        WebDriverWait(main_page.driver, 10).until(
+        # Ждем открытия нового окна
+        WebDriverWait(driver, 10).until(
             lambda d: len(d.window_handles) > 1
         )
         
-        new_window = [w for w in main_page.driver.window_handles if w != main_window][0]
-        main_page.driver.switch_to.window(new_window)
+        # Переключаемся на новое окно
+        new_window = [window for window in driver.window_handles if window != main_window][0]
+        driver.switch_to.window(new_window)
         
-        WebDriverWait(main_page.driver, 10).until(
+        # Ждем загрузки Дзена
+        WebDriverWait(driver, 10).until(
             EC.url_contains("dzen.ru")
         )
-        assert "dzen.ru" in main_page.driver.current_url
+        
+        # Проверяем URL
+        assert "dzen.ru" in driver.current_url
