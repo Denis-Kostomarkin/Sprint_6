@@ -10,20 +10,24 @@ class MainPage(BasePage):
     
     # Локаторы
     COOKIE_BUTTON = (By.ID, "rcc-confirm-button")
-    
-    # Кнопки заказа - находим по родительским блокам
-    ORDER_BUTTON_TOP = (By.XPATH, "//div[contains(@class, 'Header')]//button[text()='Заказать']")
-    ORDER_BUTTON_BOTTOM = (By.XPATH, "//div[contains(@class, 'Home_FinishButton')]//button[text()='Заказать']")
-    
-    # Логотипы
+    ORDER_BUTTON_TOP = (By.XPATH, "//button[text()='Заказать']")
+    ORDER_BUTTON_BOTTOM = (By.XPATH, "(//button[text()='Заказать'])[2]")
     SCOOTER_LOGO = (By.CLASS_NAME, "Header_LogoScooter__3lsAR")
     YANDEX_LOGO = (By.CLASS_NAME, "Header_LogoYandex__3TSOI")
     
-    # Вопросы и ответы - находим по data-атрибутам или тексту
-    QUESTION_LOCATOR = (By.XPATH, "//div[@data-accordion-component='AccordionItemButton']")
-    ANSWER_LOCATOR = (By.XPATH, "//div[@data-accordion-component='AccordionItemPanel']")
+    # Локаторы вопросов по ID (стабильные)
+    QUESTION_LOCATORS = [
+        (By.ID, "accordion__heading-0"),
+        (By.ID, "accordion__heading-1"),
+        (By.ID, "accordion__heading-2"),
+        (By.ID, "accordion__heading-3"),
+        (By.ID, "accordion__heading-4"),
+        (By.ID, "accordion__heading-5"),
+        (By.ID, "accordion__heading-6"),
+        (By.ID, "accordion__heading-7"),
+    ]
     
-    # Список ожидаемых текстов ответов
+    # Ожидаемые тексты ответов
     EXPECTED_ANSWERS = [
         "Сутки — 400 рублей. Оплата курьеру — наличными или картой.",
         "Пока что у нас так: один заказ — один самокат. Если хотите покататься с друзьями, можете просто сделать несколько заказов — один за другим.",
@@ -37,53 +41,51 @@ class MainPage(BasePage):
     
     @allure.step("Открыть главную страницу")
     def open_main_page(self):
-        self.open(self.url)
+        self.go_to(self.url)
         return self
     
     @allure.step("Принять куки")
     def accept_cookies(self):
-        if self.is_element_visible(self.COOKIE_BUTTON, timeout=3):
-            self.click_element(self.COOKIE_BUTTON)
+        if self.is_visible(self.COOKIE_BUTTON, timeout=3):
+            self.click(self.COOKIE_BUTTON)
         return self
     
-    @allure.step("Нажать на вопрос по индексу {index}")
-    def click_question_by_index(self, index):
-        """Кликнуть на вопрос по порядковому номеру (0-based)"""
-        all_questions = self.driver.find_elements(*self.QUESTION_LOCATOR)
-        if index < len(all_questions):
-            self.scroll_to_element((By.ID, all_questions[index].get_attribute("id")))
-            all_questions[index].click()
+    @allure.step("Нажать на вопрос {question_index}")
+    def click_question(self, question_index):
+        """Кликнуть на вопрос по индексу (0-7)"""
+        if 0 <= question_index <= 7:
+            self.scroll_to(self.QUESTION_LOCATORS[question_index])
+            self.click(self.QUESTION_LOCATORS[question_index])
         else:
-            raise IndexError(f"Вопрос с индексом {index} не найден. Всего вопросов: {len(all_questions)}")
+            raise ValueError("Индекс вопроса должен быть от 0 до 7")
         return self
     
-    @allure.step("Получить текст ответа по индексу {index}")
-    def get_answer_text_by_index(self, index):
-        """Получить текст ответа по порядковому номеру (0-based)"""
-        all_answers = self.driver.find_elements(*self.ANSWER_LOCATOR)
-        if index < len(all_answers):
-            return all_answers[index].text
+    @allure.step("Получить текст ответа на вопрос {question_index}")
+    def get_answer_text(self, question_index):
+        """Получить текст ответа по индексу (0-7)"""
+        if 0 <= question_index <= 7:
+            answer_locator = (By.ID, f"accordion__panel-{question_index}")
+            return self.get_text(answer_locator)
         else:
-            raise IndexError(f"Ответ с индексом {index} не найден. Всего ответов: {len(all_answers)}")
+            raise ValueError("Индекс вопроса должен быть от 0 до 7")
     
     @allure.step("Нажать верхнюю кнопку 'Заказать'")
-    def click_top_order_button(self):
-        self.scroll_to_element(self.ORDER_BUTTON_TOP)
-        self.click_element(self.ORDER_BUTTON_TOP)
+    def click_order_button_top(self):
+        self.click(self.ORDER_BUTTON_TOP)
         return self
     
     @allure.step("Нажать нижнюю кнопку 'Заказать'")
-    def click_bottom_order_button(self):
-        self.scroll_to_element(self.ORDER_BUTTON_BOTTOM)
-        self.click_element(self.ORDER_BUTTON_BOTTOM)
+    def click_order_button_bottom(self):
+        self.scroll_to(self.ORDER_BUTTON_BOTTOM)
+        self.click(self.ORDER_BUTTON_BOTTOM)
         return self
     
     @allure.step("Нажать на логотип Самоката")
     def click_scooter_logo(self):
-        self.click_element(self.SCOOTER_LOGO)
+        self.click(self.SCOOTER_LOGO)
         return self
     
     @allure.step("Нажать на логотип Яндекса")
     def click_yandex_logo(self):
-        self.click_element(self.YANDEX_LOGO)
+        self.click(self.YANDEX_LOGO)
         return self

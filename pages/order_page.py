@@ -1,14 +1,12 @@
 from selenium.webdriver.common.by import By
 from selenium.webdriver import Keys
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.wait import WebDriverWait
+from .base_page import BasePage
 import allure
-import time
 
 
-class OrderPage:
+class OrderPage(BasePage):
     def __init__(self, driver):
-        self.driver = driver
+        super().__init__(driver)
     
     # Локаторы
     NAME_INPUT = (By.XPATH, "//input[@placeholder='* Имя']")
@@ -31,56 +29,47 @@ class OrderPage:
     
     @allure.step("Заполнить информацию о заказчике")
     def fill_customer_info(self, name, last_name, address, phone):
-        self.driver.find_element(*self.NAME_INPUT).send_keys(name)
-        self.driver.find_element(*self.LAST_NAME_INPUT).send_keys(last_name)
-        self.driver.find_element(*self.ADDRESS_INPUT).send_keys(address)
+        self.send_keys(self.NAME_INPUT, name)
+        self.send_keys(self.LAST_NAME_INPUT, last_name)
+        self.send_keys(self.ADDRESS_INPUT, address)
         
-        metro_field = self.driver.find_element(*self.METRO_INPUT)
-        metro_field.click()
+        self.click(self.METRO_INPUT)
+        metro_field = self.find_element(self.METRO_INPUT)
         metro_field.send_keys("Сокольники")
         
-        WebDriverWait(self.driver, 5).until(
-            EC.visibility_of_element_located(self.METRO_STATION)
-        ).click()
+        self.wait.until(lambda d: self.is_visible(self.METRO_STATION))
+        self.click(self.METRO_STATION)
         
-        self.driver.find_element(*self.PHONE_INPUT).send_keys(phone)
-        self.driver.find_element(*self.NEXT_BUTTON).click()
+        self.send_keys(self.PHONE_INPUT, phone)
+        self.click(self.NEXT_BUTTON)
         return self
     
     @allure.step("Заполнить информацию об аренде")
     def fill_rental_info(self, date, color="black"):
-        date_input = self.driver.find_element(*self.DATE_INPUT)
-        date_input.click()
-        date_input.send_keys(date)
-        date_input.send_keys(Keys.ESCAPE)
+        date_element = self.find_clickable_element(self.DATE_INPUT)
+        date_element.click()
+        date_element.send_keys(date)
+        date_element.send_keys(Keys.ESCAPE)
         
-        self.driver.find_element(*self.RENTAL_PERIOD).click()
-        self.driver.find_element(*self.RENTAL_1_DAY).click()
+        self.click(self.RENTAL_PERIOD)
+        self.click(self.RENTAL_1_DAY)
         
         if color == "black":
-            self.driver.find_element(*self.BLACK_CHECKBOX).click()
+            self.click(self.BLACK_CHECKBOX)
         elif color == "grey":
-            self.driver.find_element(*self.GREY_CHECKBOX).click()
+            self.click(self.GREY_CHECKBOX)
         
         return self
     
     @allure.step("Оформить заказ")
     def place_order(self):
-        try:
-            order_button = self.driver.find_element(*self.ORDER_BUTTON)
-            order_button.click()
-            
-            time.sleep(2)
-            
-            confirm_button = WebDriverWait(self.driver, 10).until(
-                EC.element_to_be_clickable(self.CONFIRM_BUTTON)
-            )
-            confirm_button.click()
-            
-            success_element = WebDriverWait(self.driver, 10).until(
-                EC.visibility_of_element_located(self.SUCCESS_MODAL)
-            )
-            return True
-        except Exception as e:
-            print(f"Ошибка при оформлении заказа: {e}")
-            return False
+        self.click(self.ORDER_BUTTON)
+        
+        # Ожидание без time.sleep
+        self.wait.until(lambda d: self.is_visible(self.CONFIRM_BUTTON))
+        
+        confirm_button = self.find_clickable_element(self.CONFIRM_BUTTON)
+        confirm_button.click()
+        
+        # Проверка успешности без исключений и print
+        return self.is_visible(self.SUCCESS_MODAL, timeout=10)
