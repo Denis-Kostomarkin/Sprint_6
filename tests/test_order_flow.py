@@ -10,7 +10,6 @@ from selenium.webdriver.support import expected_conditions as EC
 @allure.feature("Заказ самоката")
 class TestOrderFlow:
     
-    # Разделим тестовые данные на два отдельных теста
     TOP_BUTTON_DATA = {
         "name": "Иван",
         "last_name": "Иванов",
@@ -99,15 +98,15 @@ class TestOrderFlow:
         main_window = driver.current_window_handle
         main_page.click_yandex_logo()
         
-        WebDriverWait(driver, 10).until(
+        main_page.wait.until(
             lambda d: len(d.window_handles) > 1
         )
         
         new_window = [window for window in driver.window_handles if window != main_window][0]
         driver.switch_to.window(new_window)
         
-        WebDriverWait(driver, 10).until(
+        main_page.wait.until(
             EC.url_contains("dzen.ru")
         )
         
-        assert "dzen.ru" in driver.current_url
+        assert "dzen.ru" in main_page.get_current_url()

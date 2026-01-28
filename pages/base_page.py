@@ -60,3 +60,19 @@ class BasePage:
     @allure.step("Получить текущий URL")
     def get_current_url(self):
         return self.driver.current_url
+    
+    @allure.step("Переключиться на окно")
+    def switch_to_window(self, window_handle):
+        """Переключиться на указанное окно"""
+        self.driver.switch_to.window(window_handle)
+        return self
+
+    @allure.step("Получить список дескрипторов окон")
+    def get_window_handles(self):
+        """Получить список всех дескрипторов окон"""
+        return self.driver.window_handles
+
+    @allure.step("Получить текущий дескриптор окна")
+    def get_current_window_handle(self):
+        """Получить дескриптор текущего окна"""
+        return self.driver.current_window_handle
