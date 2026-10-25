@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 import pytest
 import allure
 from pages.main_page import MainPage
@@ -15,7 +16,7 @@ class TestOrderFlow:
         "last_name": "Иванов",
         "address": "ул. Ленина, д. 10",
         "phone": "+79991234567",
-        "date": "15.12.2024",
+        "date": (datetime.now() + timedelta(days=7)).strftime("%d.%m.%Y"),
         "color": "black",
         "comment": "Позвонить за час до доставки"
     }
@@ -25,7 +26,7 @@ class TestOrderFlow:
         "last_name": "Петрова",
         "address": "пр. Мира, д. 25",
         "phone": "+79997654321",
-        "date": "20.12.2024",
+        "date": (datetime.now() + timedelta(days=10)).strftime("%d.%m.%Y"),
         "color": "grey",
         "comment": ""
     }
