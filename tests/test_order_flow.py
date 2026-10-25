@@ -16,7 +16,7 @@ class TestOrderFlow:
         "last_name": "Иванов",
         "address": "ул. Ленина, д. 10",
         "phone": "+79991234567",
-        "date": (datetime.now() + timedelta(days=7)).strftime("%d.%m.%Y"),
+        "date": 7,
         "color": "black",
         "comment": "Позвонить за час до доставки"
     }
@@ -26,7 +26,7 @@ class TestOrderFlow:
         "last_name": "Петрова",
         "address": "пр. Мира, д. 25",
         "phone": "+79997654321",
-        "date": (datetime.now() + timedelta(days=10)).strftime("%d.%m.%Y"),
+        "date": 10,
         "color": "grey",
         "comment": ""
     }
@@ -48,7 +48,7 @@ class TestOrderFlow:
             self.TOP_BUTTON_DATA["phone"]
         )
         order_page.fill_rental_info(
-            self.TOP_BUTTON_DATA["date"],
+            (datetime.now() + timedelta(days=self.TOP_BUTTON_DATA["date"])).strftime("%d.%m.%Y"),
             self.TOP_BUTTON_DATA["color"]
         )
         
@@ -71,7 +71,7 @@ class TestOrderFlow:
             self.BOTTOM_BUTTON_DATA["phone"]
         )
         order_page.fill_rental_info(
-            self.BOTTOM_BUTTON_DATA["date"],
+            (datetime.now() + timedelta(days=self.BOTTOM_BUTTON_DATA["date"])).strftime("%d.%m.%Y"),
             self.BOTTOM_BUTTON_DATA["color"]
         )
         
